@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdf8f3;
+  --foreground: #1f2140;
 }
 
 @theme inline {
@@ -12,15 +12,133 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+a,
+input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.studymate-loader {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studymate-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 4px solid #eee7f5;
+  border-top-color: #7c3aed;
+  border-right-color: #a78bfa;
+  animation: studymate-spin 0.9s linear infinite;
+  box-shadow:
+    0 0 28px rgba(124, 58, 237, 0.12),
+    inset 0 0 18px rgba(124, 58, 237, 0.04);
+}
+
+.studymate-loader-core {
+  width: 58px;
+  height: 58px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #f3ebfd, #e7d8fa);
+  color: #7c3aed;
+  font-size: 24px;
+  box-shadow:
+    0 8px 30px rgba(124, 58, 237, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: studymate-core-pulse 1.8s ease-in-out infinite;
+}
+
+.button-spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  animation: studymate-spin 0.75s linear infinite;
+}
+
+.loading-dots::after {
+  display: inline-block;
+  width: 1.4em;
+  text-align: left;
+  content: "";
+  animation: studymate-dots 1.4s steps(4, end) infinite;
+}
+
+@keyframes studymate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes studymate-core-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes studymate-dots {
+  0% {
+    content: "";
+  }
+
+  25% {
+    content: ".";
+  }
+
+  50% {
+    content: "..";
+  }
+
+  75%,
+  100% {
+    content: "...";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .studymate-loader-ring,
+  .studymate-loader-core,
+  .button-spinner,
+  .loading-dots::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
 }
