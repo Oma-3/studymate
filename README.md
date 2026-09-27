@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudyMate
 
-## Getting Started
+StudyMate is a Computer-Based Testing (CBT) web application I built to give students a simple way to practise questions and test their knowledge.
 
-First, run the development server:
+The idea was to recreate the experience of taking a computer-based exam while keeping the interface straightforward and easy to use.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What the Project Does
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+StudyMate allows users to create an account, log in, choose a question category and take timed practice tests.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Users can decide how many questions they want to answer and move through the questions one at a time. The application also keeps track of scores so users can see how they performed after completing a test.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- User registration and login
+- Question categories
+- Timed CBT sessions
+- Choose between 10–50 questions
+- One-question-at-a-time test interface
+- Previous and Next question navigation
+- Score calculation
+- Save Session option
+- User score history
+- Admin section for managing users, questions and scores
+- Responsive interface for different screen sizes
 
-To learn more about Next.js, take a look at the following resources:
+## Built With
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js
+- React
+- TypeScript
+- CSS
+- Git & GitHub
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Why I Built It
 
-## Deploy on Vercel
+I built StudyMate because CBT exams are common for students, and I wanted to create something that could make practising for them more convenient.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+It was also a good opportunity for me to work on authentication, timers, question navigation, state management and building an application with both a user side and an admin side.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Status
+
+StudyMate is a portfolio project and is open to further improvements as I continue developing my skills.
+
+## Author
+
+**Chioma Iwegbuna**  
+Web Developer
