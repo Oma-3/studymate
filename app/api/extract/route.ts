@@ -4,18 +4,9 @@ import mammoth from "mammoth";
 
 export const runtime = "nodejs";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"] as const;
 
-const MODELS = [
-  "gemini-3.8-flash",
-  "gemini-3.7-flash",
-  "gemini-3.6-flash",
-  "gemini-3.5-flash",
-  "gemini-3.5-flash-lite",
-];
-
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_DOCX_IMAGES = 20;
 const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;
 
@@ -25,9 +16,6 @@ const SUPPORTED_IMAGE_TYPES = new Set([
   "image/webp",
   "image/gif",
 ]);
-
-const sleep = (milliseconds: number) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 type GeminiContent =
   | {
@@ -77,7 +65,30 @@ function getErrorStatus(error: unknown): number | undefined {
   );
 }
 
-function isTemporaryError(error: unknown) {
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const possibleError = error as {
+      message?: string;
+      error?: {
+        message?: string;
+      };
+    };
+
+    return (
+      possibleError.message ??
+      possibleError.error?.message ??
+      "Unknown Gemini error"
+    );
+  }
+
+  return String(error);
+}
+
+function isTemporaryError(error: unknown): boolean {
   const status = getErrorStatus(error);
 
   return (
@@ -116,7 +127,6 @@ const quizSchema = {
 
           options: {
             type: "array",
-
             items: {
               type: "string",
             },
@@ -156,66 +166,71 @@ const quizSchema = {
   required: ["title", "questions"],
 };
 
-async function generateWithFallback(contents: GeminiContent[]) {
+async function generateWithFallback(
+  ai: GoogleGenAI,
+  contents: GeminiContent[],
+) {
   let lastError: unknown = null;
 
+  /*
+   * IMPORTANT:
+   *
+   * Do not retry the same model repeatedly inside this request.
+   * A temporary Gemini outage can otherwise consume the entire
+   * serverless execution window.
+   *
+   * We try the primary model once and then one lightweight fallback.
+   */
   for (const model of MODELS) {
-    console.log(`StudyMate trying model: ${model}`);
+    try {
+      console.log(`StudyMate trying model: ${model}`);
 
-    const attemptsPerModel = 2;
+      const response = await ai.models.generateContent({
+        model,
+        contents,
 
-    for (let attempt = 1; attempt <= attemptsPerModel; attempt++) {
-      try {
-        console.log(`${model} attempt ${attempt}/${attemptsPerModel}`);
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: quizSchema,
+        },
+      });
 
-        const response = await ai.models.generateContent({
-          model,
-          contents,
-
-          config: {
-            responseMimeType: "application/json",
-            responseSchema: quizSchema,
-          },
-        });
-
-        if (response.text) {
-          console.log(`StudyMate succeeded with ${model}`);
-
-          return {
-            response,
-            model,
-          };
-        }
-
+      if (!response.text?.trim()) {
         throw new Error(`${model} returned an empty response.`);
-      } catch (error) {
-        lastError = error;
-
-        const status = getErrorStatus(error);
-
-        console.error(`${model} attempt ${attempt} failed. Status:`, status);
-
-        if (!isTemporaryError(error)) {
-          console.log(
-            `${model} returned a non-temporary error. Trying the next model.`,
-          );
-
-          break;
-        }
-
-        if (attempt < attemptsPerModel) {
-          const delay = 1200 + Math.floor(Math.random() * 600);
-
-          console.log(
-            `${model} is temporarily unavailable. Retrying in ${delay}ms...`,
-          );
-
-          await sleep(delay);
-        }
       }
-    }
 
-    console.log(`${model} did not succeed. Moving to the next model.`);
+      console.log(`StudyMate succeeded with ${model}`);
+
+      return {
+        response,
+        model,
+      };
+    } catch (error) {
+      lastError = error;
+
+      const status = getErrorStatus(error);
+      const message = getErrorMessage(error);
+
+      console.error(
+        `StudyMate model ${model} failed. Status: ${status ?? "unknown"}. Message: ${message}`,
+      );
+
+      /*
+       * Authentication, malformed-request and other permanent errors
+       * should not be hidden by trying more models.
+       */
+      if (!isTemporaryError(error)) {
+        throw error;
+      }
+
+      /*
+       * For a temporary error, immediately try the next model.
+       * No sleep and no second attempt on the same model.
+       */
+      console.log(
+        `${model} is temporarily unavailable. Trying fallback model.`,
+      );
+    }
   }
 
   throw lastError ?? new Error("All Gemini models failed.");
@@ -343,16 +358,28 @@ async function processDocx(buffer: Buffer) {
 
 export async function POST(request: Request) {
   try {
-    if (!process.env.GEMINI_API_KEY) {
+    /*
+     * Create the client inside the request instead of at module load.
+     * This also gives us a clean configuration check.
+     */
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      console.error("StudyMate: GEMINI_API_KEY is missing.");
+
       return NextResponse.json(
         {
-          error: "Gemini API key is not configured.",
+          error: "StudyMate's AI service is not configured.",
         },
         {
           status: 500,
         },
       );
     }
+
+    const ai = new GoogleGenAI({
+      apiKey,
+    });
 
     const formData = await request.formData();
 
@@ -372,7 +399,6 @@ export async function POST(request: Request) {
     }
 
     const questionCount = Number(questionCountValue);
-
     const difficulty = String(difficultyValue ?? "Balanced");
 
     if (![5, 10, 20].includes(questionCount)) {
@@ -398,9 +424,7 @@ export async function POST(request: Request) {
     }
 
     const fileName = file.name.toLowerCase();
-
     const isPdf = fileName.endsWith(".pdf");
-
     const isDocx = fileName.endsWith(".docx");
 
     if (!isPdf && !isDocx) {
@@ -414,8 +438,34 @@ export async function POST(request: Request) {
       );
     }
 
-    const arrayBuffer = await file.arrayBuffer();
+    if (file.size === 0) {
+      return NextResponse.json(
+        {
+          error: "The uploaded file is empty.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        {
+          error:
+            "This file is too large. Please upload a PDF or DOCX smaller than 10 MB.",
+        },
+        {
+          status: 413,
+        },
+      );
+    }
+
+    console.log(
+      `StudyMate received ${file.name} (${file.size} bytes), ${questionCount} questions, ${difficulty}.`,
+    );
+
+    const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const quizPrompt = createQuizPrompt(questionCount, difficulty);
@@ -451,9 +501,11 @@ Pay attention to:
 - visual relationships
 
 ${quizPrompt}
-          `,
+`,
         },
       ];
+
+      console.log(`StudyMate prepared PDF for Gemini: ${file.name}`);
     } else {
       const { documentText, images } = await processDocx(buffer);
 
@@ -478,7 +530,9 @@ DOCUMENT CONTENT:
 
 ${documentText || "[No readable text was extracted]"}
 
-The document contains ${images.length} supported embedded image${images.length === 1 ? "" : "s"} that follow this message.
+The document contains ${images.length} supported embedded image${
+            images.length === 1 ? "" : "s"
+          } that follow this message.
 
 Treat the written content and embedded images as parts of the same study document.
 
@@ -490,7 +544,7 @@ Important:
 - The text marker [EMBEDDED IMAGE] indicates that an image occurred around that location in the Word document.
 
 ${quizPrompt}
-          `,
+`,
         },
       ];
 
@@ -512,9 +566,9 @@ ${quizPrompt}
       );
     }
 
-    const { response, model } = await generateWithFallback(contents);
+    const { response, model } = await generateWithFallback(ai, contents);
 
-    if (!response.text) {
+    if (!response.text?.trim()) {
       return NextResponse.json(
         {
           error: "StudyMate could not generate a quiz from these notes.",
@@ -529,8 +583,8 @@ ${quizPrompt}
 
     try {
       quiz = JSON.parse(response.text) as QuizResponse;
-    } catch {
-      console.error("StudyMate received invalid quiz JSON.");
+    } catch (parseError) {
+      console.error("StudyMate received invalid quiz JSON:", parseError);
 
       return NextResponse.json(
         {
@@ -542,11 +596,7 @@ ${quizPrompt}
       );
     }
 
-    if (
-      !quiz.questions ||
-      !Array.isArray(quiz.questions) ||
-      quiz.questions.length === 0
-    ) {
+    if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
       return NextResponse.json(
         {
           error:
@@ -589,13 +639,20 @@ ${quizPrompt}
     }
 
     const finalQuiz: QuizResponse = {
-      title: quiz.title?.trim() || "Your StudyMate Quiz",
+      title:
+        typeof quiz.title === "string" && quiz.title.trim().length > 0
+          ? quiz.title.trim()
+          : "Your StudyMate Quiz",
 
       questions: validQuestions.map((question, index) => ({
         ...question,
         id: index + 1,
       })),
     };
+
+    console.log(
+      `StudyMate generated ${finalQuiz.questions.length} question(s) using ${model}.`,
+    );
 
     return NextResponse.json({
       success: true,
@@ -607,9 +664,13 @@ ${quizPrompt}
       modelUsed: model,
     });
   } catch (error) {
-    console.error("StudyMate quiz generation error:", error);
-
     const status = getErrorStatus(error);
+    const message = getErrorMessage(error);
+
+    console.error(
+      `StudyMate quiz generation error. Status: ${status ?? "unknown"}. Message: ${message}`,
+      error,
+    );
 
     if (status === 429) {
       return NextResponse.json(
@@ -623,7 +684,13 @@ ${quizPrompt}
       );
     }
 
-    if (status === 500 || status === 502 || status === 503 || status === 504) {
+    if (
+      status === 408 ||
+      status === 500 ||
+      status === 502 ||
+      status === 503 ||
+      status === 504
+    ) {
       return NextResponse.json(
         {
           error:
