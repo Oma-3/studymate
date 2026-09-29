@@ -15,6 +15,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user && !isLoggingOut) {
@@ -120,68 +121,200 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-[#FDF8F3] text-[#25213D]">
       {/* Navbar */}
-      <nav className="border-b border-[#EEE6F4] bg-[#FDF8F3]/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-10">
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="flex shrink-0 items-center gap-2 sm:gap-3"
-          >
-            <img
-              src="/studyMate-logo.png"
-              alt="StudyMate logo"
-              className="h-14 w-14 shrink-0 object-contain min-[400px]:h-16 min-[400px]:w-16 sm:h-20 sm:w-20"
-            />
-
-            <span className="text-lg font-bold tracking-tight sm:text-xl">
-              Study
-              <span className="text-[#7C3AED]">Mate</span>
-            </span>
-          </button>
-
-          <div className="flex items-center gap-2 sm:gap-4">
+      <nav className="relative border-b border-[#EEE6F4] bg-[#FDF8F3]/95">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-10">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
             <button
               type="button"
               onClick={() => router.push("/study")}
-              className="hidden rounded-full px-4 py-2 text-sm font-semibold text-[#5E5870] transition hover:bg-[#F2EAFE] hover:text-[#7C3AED] sm:block"
+              className="flex shrink-0 items-center gap-2"
             >
-              Study
-            </button>
+              <img
+                src="/studyMate-logo.png"
+                alt="StudyMate logo"
+                className="h-14 w-14 shrink-0 object-contain min-[400px]:h-16 min-[400px]:w-16 sm:h-20 sm:w-20"
+              />
 
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="hidden rounded-full px-4 py-2 text-sm font-semibold text-[#5E5870] transition hover:bg-[#F2EAFE] hover:text-[#7C3AED] sm:block"
-            >
-              Dashboard
-            </button>
-
-            <div className="hidden h-7 w-px bg-[#DDD4E7] sm:block" />
-
-            <button
-              type="button"
-              onClick={() => router.push("/profile")}
-              className="flex items-center gap-2 rounded-full bg-[#F0E7FC] p-1 pr-1 sm:pr-3"
-              aria-label="Profile"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#7C3AED] text-sm font-bold text-white">
-                {initial}
-              </div>
-
-              <span className="hidden max-w-[120px] truncate text-sm font-semibold text-[#5B3C83] md:block">
-                {firstName}
+              <span className="text-lg font-bold tracking-tight sm:text-xl">
+                Study
+                <span className="text-[#7C3AED]">Mate</span>
               </span>
             </button>
 
+            {/* Desktop Navigation */}
+            <div className="hidden items-center gap-7 lg:flex">
+              <button
+                type="button"
+                onClick={() => router.push("/study")}
+                className="font-medium text-[#655C70] transition hover:text-[#7C3AED]"
+              >
+                Study
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="font-medium text-[#655C70] transition hover:text-[#7C3AED]"
+              >
+                Dashboard
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/history")}
+                className="font-medium text-[#655C70] transition hover:text-[#7C3AED]"
+              >
+                History
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/profile")}
+                className="font-semibold text-[#7C3AED] transition hover:text-[#5B21B6]"
+              >
+                Profile
+              </button>
+            </div>
+
+            {/* Desktop User Area */}
+            <div className="hidden items-center lg:flex">
+              <button
+                type="button"
+                onClick={() => router.push("/profile")}
+                className="flex items-center gap-3"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EDE3FA] text-sm font-bold uppercase text-[#6D28D9]">
+                  {initial}
+                </div>
+
+                <div className="min-w-0 text-left">
+                  <p className="text-xs font-medium text-[#918B9B]">
+                    Studying as
+                  </p>
+                  <p className="max-w-[150px] truncate text-sm font-bold text-[#3E3748] xl:max-w-[190px]">
+                    {user.displayName || user.email}
+                  </p>
+                </div>
+              </button>
+
+              <div className="mx-5 h-8 w-px bg-[#DDD3E5]" />
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="shrink-0 rounded-full border border-[#D9CEE4] bg-white px-5 py-2.5 text-sm font-semibold text-[#655C70] transition hover:border-[#BDA5D9] hover:bg-[#FBF8FD] hover:text-[#6D28D9] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoggingOut ? "Logging out..." : "Log Out"}
+              </button>
+            </div>
+
+            {/* Mobile Hamburger */}
             <button
               type="button"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="rounded-full border border-[#D8C6F3] px-3 py-2 text-xs font-semibold text-[#5A4A70] transition hover:bg-[#F2EAFE] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm"
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#DED3E7] bg-white text-[#4B4355] transition hover:border-[#BDA5D9] hover:text-[#7C3AED] lg:hidden"
+              aria-label={
+                isMobileMenuOpen
+                  ? "Close navigation menu"
+                  : "Open navigation menu"
+              }
+              aria-expanded={isMobileMenuOpen}
             >
-              {isLoggingOut ? "Leaving..." : "Log Out"}
+              {isMobileMenuOpen ? (
+                <span className="text-2xl leading-none">×</span>
+              ) : (
+                <span className="flex flex-col gap-1.5">
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                </span>
+              )}
             </button>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="absolute left-4 right-4 top-full z-40 mt-2 overflow-hidden rounded-3xl border border-[#E6DAF3] bg-white p-4 shadow-[0_20px_60px_rgba(68,52,91,0.16)] sm:left-6 sm:right-6 lg:hidden">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push("/profile");
+                }}
+                className="mb-3 flex w-full items-center gap-3 border-b border-[#EEE8F2] px-2 pb-4 text-left"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EDE3FA] text-sm font-bold uppercase text-[#6D28D9]">
+                  {initial}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-[#918B9B]">
+                    Studying as
+                  </p>
+                  <p className="truncate text-sm font-bold text-[#3E3748]">
+                    {user.displayName || user.email}
+                  </p>
+                </div>
+              </button>
+
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push("/study");
+                  }}
+                  className="rounded-xl px-4 py-3 text-left font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+                >
+                  Study
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push("/dashboard");
+                  }}
+                  className="rounded-xl px-4 py-3 text-left font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+                >
+                  Dashboard
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push("/history");
+                  }}
+                  className="rounded-xl px-4 py-3 text-left font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+                >
+                  History
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push("/profile");
+                  }}
+                  className="rounded-xl bg-[#F0E7FC] px-4 py-3 text-left font-semibold text-[#6D28D9]"
+                >
+                  Profile
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="mt-3 w-full rounded-xl border border-[#E3D8EA] px-4 py-3 text-left font-semibold text-[#655C70] transition hover:bg-[#FBF8FD] hover:text-[#7C3AED] disabled:opacity-60"
+              >
+                {isLoggingOut ? "Logging out..." : "Log Out"}
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 

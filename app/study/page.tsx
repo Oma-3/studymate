@@ -38,6 +38,7 @@ export default function StudyPage() {
   const [loadingStage, setLoadingStage] = useState(0);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -347,48 +348,176 @@ export default function StudyPage() {
         </div>
       )}
 
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
-        <a href="/" className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <img
-            src="/studyMate-logo.png"
-            alt="StudyMate logo"
-            className="h-14 w-14 shrink-0 object-contain min-[400px]:h-16 min-[400px]:w-16 sm:h-20 sm:w-20"
-          />
+      <nav className="relative mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <a
+            href="/study"
+            className="flex shrink-0 items-center gap-2 sm:gap-3"
+          >
+            <img
+              src="/studyMate-logo.png"
+              alt="StudyMate logo"
+              className="h-14 w-14 shrink-0 object-contain min-[400px]:h-16 min-[400px]:w-16 sm:h-20 sm:w-20"
+            />
 
-          <span className="text-lg font-bold tracking-tight sm:text-xl">
-            Study
-            <span className="text-[#7C3AED]">Mate</span>
-          </span>
-        </a>
+            <span className="text-lg font-bold tracking-tight sm:text-xl">
+              Study
+              <span className="text-[#7C3AED]">Mate</span>
+            </span>
+          </a>
 
-        <div className="flex items-center">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EDE3FA] text-sm font-bold uppercase text-[#6D28D9]">
-              {user.displayName
-                ? user.displayName.charAt(0)
-                : user.email?.charAt(0) || "S"}
-            </div>
+          {/* Desktop Navigation */}
+          <div className="hidden items-center gap-7 lg:flex">
+            <a
+              href="/study"
+              className="font-semibold text-[#7C3AED] transition hover:text-[#5B21B6]"
+            >
+              Study
+            </a>
 
-            <div className="hidden min-w-0 sm:block">
-              <p className="text-xs font-medium text-[#918B9B]">Studying as</p>
+            <a
+              href="/dashboard"
+              className="font-medium text-[#655C70] transition hover:text-[#7C3AED]"
+            >
+              Dashboard
+            </a>
 
-              <p className="max-w-[160px] truncate text-sm font-bold text-[#3E3748] lg:max-w-[220px]">
-                {user.displayName || user.email}
-              </p>
-            </div>
+            <a
+              href="/history"
+              className="font-medium text-[#655C70] transition hover:text-[#7C3AED]"
+            >
+              History
+            </a>
+
+            <a
+              href="/profile"
+              className="font-medium text-[#655C70] transition hover:text-[#7C3AED]"
+            >
+              Profile
+            </a>
           </div>
 
-          <div className="mx-5 hidden h-8 w-px bg-[#DDD3E5] sm:block lg:mx-7" />
+          {/* Desktop User Area */}
+          <div className="hidden items-center lg:flex">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EDE3FA] text-sm font-bold uppercase text-[#6D28D9]">
+                {user.displayName
+                  ? user.displayName.charAt(0)
+                  : user.email?.charAt(0) || "S"}
+              </div>
 
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-[#918B9B]">
+                  Studying as
+                </p>
+
+                <p className="max-w-[150px] truncate text-sm font-bold text-[#3E3748] xl:max-w-[190px]">
+                  {user.displayName || user.email}
+                </p>
+              </div>
+            </div>
+
+            <div className="mx-5 h-8 w-px bg-[#DDD3E5]" />
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="shrink-0 rounded-full border border-[#D9CEE4] bg-white px-5 py-2.5 text-sm font-semibold text-[#655C70] transition hover:border-[#BDA5D9] hover:bg-[#FBF8FD] hover:text-[#6D28D9] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoggingOut ? "Logging out..." : "Log Out"}
+            </button>
+          </div>
+
+          {/* Mobile Hamburger */}
           <button
             type="button"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="ml-3 shrink-0 rounded-full border border-[#D9CEE4] bg-white px-4 py-2.5 text-sm font-semibold text-[#655C70] transition hover:border-[#BDA5D9] hover:bg-[#FBF8FD] hover:text-[#6D28D9] disabled:cursor-not-allowed disabled:opacity-60 sm:ml-0 sm:px-5"
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#DED3E7] bg-white text-[#4B4355] transition hover:border-[#BDA5D9] hover:text-[#7C3AED] lg:hidden"
+            aria-label={
+              isMobileMenuOpen
+                ? "Close navigation menu"
+                : "Open navigation menu"
+            }
+            aria-expanded={isMobileMenuOpen}
           >
-            {isLoggingOut ? "Logging out..." : "Log Out"}
+            {isMobileMenuOpen ? (
+              <span className="text-2xl leading-none">×</span>
+            ) : (
+              <span className="flex flex-col gap-1.5">
+                <span className="block h-0.5 w-5 rounded-full bg-current" />
+                <span className="block h-0.5 w-5 rounded-full bg-current" />
+                <span className="block h-0.5 w-5 rounded-full bg-current" />
+              </span>
+            )}
           </button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="absolute left-4 right-4 top-full z-40 mt-2 overflow-hidden rounded-3xl border border-[#E6DAF3] bg-white p-4 shadow-[0_20px_60px_rgba(68,52,91,0.16)] sm:left-6 sm:right-6 lg:hidden">
+            <div className="mb-3 flex items-center gap-3 border-b border-[#EEE8F2] px-2 pb-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EDE3FA] text-sm font-bold uppercase text-[#6D28D9]">
+                {user.displayName
+                  ? user.displayName.charAt(0)
+                  : user.email?.charAt(0) || "S"}
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-[#918B9B]">
+                  Studying as
+                </p>
+                <p className="truncate text-sm font-bold text-[#3E3748]">
+                  {user.displayName || user.email}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <a
+                href="/study"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-xl bg-[#F0E7FC] px-4 py-3 font-semibold text-[#6D28D9]"
+              >
+                Study
+              </a>
+
+              <a
+                href="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-xl px-4 py-3 font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+              >
+                Dashboard
+              </a>
+
+              <a
+                href="/history"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-xl px-4 py-3 font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+              >
+                History
+              </a>
+
+              <a
+                href="/profile"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-xl px-4 py-3 font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+              >
+                Profile
+              </a>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="mt-3 w-full rounded-xl border border-[#E3D8EA] px-4 py-3 text-left font-semibold text-[#655C70] transition hover:bg-[#FBF8FD] hover:text-[#7C3AED] disabled:opacity-60"
+            >
+              {isLoggingOut ? "Logging out..." : "Log Out"}
+            </button>
+          </div>
+        )}
       </nav>
 
       <section className="mx-auto max-w-4xl px-6 pb-24 pt-12">

@@ -1,55 +1,142 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Home() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#FDF8F3] text-[#25213D]">
       {/* NAVBAR */}
-      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 min-[400px]:px-4 sm:gap-3 sm:px-6 sm:py-4 lg:px-10">
-        {/* StudyMate Logo */}
-        <a
-          href="#home"
-          className="flex shrink-0 items-center gap-0.5 min-[400px]:gap-1 sm:gap-2"
-        >
-          <img
-            src="/studyMate-logo.png"
-            alt="StudyMate logo"
-            className="h-14 w-14 shrink-0 object-contain min-[400px]:h-16 min-[400px]:w-16 sm:h-20 sm:w-20"
-          />
+      <nav className="relative border-b border-[#EEE6F4] bg-[#FDF8F3]/95">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-10">
+          <div className="flex items-center justify-between">
+            {/* StudyMate Logo */}
+            <a
+              href="#home"
+              className="flex shrink-0 items-center gap-1 sm:gap-2"
+            >
+              <img
+                src="/studyMate-logo.png"
+                alt="StudyMate logo"
+                className="h-14 w-14 shrink-0 object-contain min-[400px]:h-16 min-[400px]:w-16 sm:h-20 sm:w-20"
+              />
 
-          <span className="text-lg font-bold tracking-tight min-[400px]:text-xl sm:text-2xl">
-            Study
-            <span className="text-[#7C3AED]">Mate</span>
-          </span>
-        </a>
+              <span className="text-lg font-bold tracking-tight min-[400px]:text-xl sm:text-2xl">
+                Study
+                <span className="text-[#7C3AED]">Mate</span>
+              </span>
+            </a>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-8 text-sm font-medium lg:flex">
-          <a href="#home" className="transition hover:text-[#7C3AED]">
-            Home
-          </a>
+            {/* Desktop Navigation */}
+            <div className="hidden items-center gap-8 text-sm font-medium lg:flex">
+              <a href="#home" className="transition hover:text-[#7C3AED]">
+                Home
+              </a>
 
-          <a href="#how-it-works" className="transition hover:text-[#7C3AED]">
-            How It Works
-          </a>
+              <a
+                href="#how-it-works"
+                className="transition hover:text-[#7C3AED]"
+              >
+                How It Works
+              </a>
 
-          <a href="#features" className="transition hover:text-[#7C3AED]">
-            Features
-          </a>
-        </div>
+              <a href="#features" className="transition hover:text-[#7C3AED]">
+                Features
+              </a>
+            </div>
 
-        {/* Account Buttons */}
-        <div className="flex shrink-0 items-center gap-1.5 min-[400px]:gap-2 sm:gap-3">
-          <a
-            href="/login"
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#D8C6F3] px-2.5 py-2 text-[11px] font-semibold transition hover:bg-[#F2EAFE] min-[400px]:px-3.5 min-[400px]:text-xs sm:px-5 sm:py-2.5 sm:text-sm"
-          >
-            Log In
-          </a>
+            {/* Desktop Account Buttons */}
+            <div className="hidden items-center gap-3 lg:flex">
+              <a
+                href="/login"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#D8C6F3] px-5 py-2.5 text-sm font-semibold transition hover:bg-[#F2EAFE]"
+              >
+                Log In
+              </a>
 
-          <a
-            href="/signup"
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-[#7C3AED] px-2.5 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:bg-[#6D28D9] min-[400px]:px-3.5 min-[400px]:text-xs sm:px-5 sm:py-2.5 sm:text-sm"
-          >
-            Start Studying
-          </a>
+              <a
+                href="/signup"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6D28D9]"
+              >
+                Start Studying
+              </a>
+            </div>
+
+            {/* Mobile Hamburger */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#DED3E7] bg-white text-[#4B4355] transition hover:border-[#BDA5D9] hover:text-[#7C3AED] lg:hidden"
+              aria-label={
+                isMobileMenuOpen
+                  ? "Close navigation menu"
+                  : "Open navigation menu"
+              }
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? (
+                <span className="text-2xl leading-none">×</span>
+              ) : (
+                <span className="flex flex-col gap-1.5">
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                  <span className="block h-0.5 w-5 rounded-full bg-current" />
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="absolute left-4 right-4 top-full z-50 mt-2 overflow-hidden rounded-3xl border border-[#E6DAF3] bg-white p-4 shadow-[0_20px_60px_rgba(68,52,91,0.16)] sm:left-6 sm:right-6 lg:hidden">
+              <div className="flex flex-col gap-1">
+                <a
+                  href="#home"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-xl bg-[#F0E7FC] px-4 py-3 font-semibold text-[#6D28D9]"
+                >
+                  Home
+                </a>
+
+                <a
+                  href="#how-it-works"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-xl px-4 py-3 font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+                >
+                  How It Works
+                </a>
+
+                <a
+                  href="#features"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-xl px-4 py-3 font-medium text-[#655C70] transition hover:bg-[#F8F3FC] hover:text-[#7C3AED]"
+                >
+                  Features
+                </a>
+              </div>
+
+              <div className="my-3 h-px bg-[#EEE8F2]" />
+
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="inline-flex items-center justify-center rounded-xl border border-[#D8C6F3] px-4 py-3 text-sm font-semibold text-[#5A4A70] transition hover:bg-[#F8F3FC]"
+                >
+                  Log In
+                </a>
+
+                <a
+                  href="/signup"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="inline-flex items-center justify-center rounded-xl bg-[#7C3AED] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#6D28D9]"
+                >
+                  Start Studying
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
